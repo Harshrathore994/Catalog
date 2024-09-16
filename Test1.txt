@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <cmath>
+
+int decodeValue(const std::string &value, int base) {
+    int decodedValue = 0;
+    int length = value.length();
+    for (int i = 0; i < length; i++) {
+        decodedValue += (value[length - i - 1] - '0') * pow(base, i);
+    }
+    return decodedValue;
+}
+
+double lagrangeInterpolation(const std::vector<std::pair<int, int>> &points) {
+    int k = points.size();
+    double constantTerm = 0.0;
+
+    for (int i = 0; i < k; i++) {
+        double term = points[i].second; // y_i
+        for (int j = 0; j < k; j++) {
+            if (i != j) {
+                term *= (0 - points[j].first) * 1.0 / (points[i].first - points[j].first);
+            }
+        }
+        constantTerm += term;
+    }
+    return constantTerm;
+}
+
+int main() {
+
+    std::map<int, std::pair<int, std::string>> input = {
+        {1, {10, "4"}},
+        {2, {2, "111"}},
+        {3, {10, "12"}},
+        {6, {4, "213"}}
+    };
+    
+    int n = 4; 
+    int k = 3;
+
+
+    std::vector<std::pair<int, int>> points;
+    for (const auto &item : input) {
+        int x = item.first;
+        int base = item.second.first;
+        std::string value = item.second.second;
+        int y = decodeValue(value, base);
+        points.push_back({x, y});
+    }
+    
+
+    double constantTerm = lagrangeInterpolation(points);
+    
+    std::cout << "The constant term (c) is: " << constantTerm << std::endl;
+    
+    return 0;
+}
