@@ -1,84 +1,79 @@
-import java.util.ArrayList;
-import java.util.List;
+#include <iostream>
+#include <vector>
+#include <map>
+#include <cmath>
+#include <string>
 
-public class ShamirSecretSharing {
+using namespace std;
 
-    // Function to decode the value based on the given base
-    public static int decodeValue(String value, int base) {
-        return Integer.parseInt(value, base);  // Parse the value according to the base
-    }
-
-    // Function to perform Lagrange interpolation and calculate the constant term
-    public static double lagrangeInterpolation(List<int[]> points, int k) {
-        double constantTerm = 0;
-
-        // Iterate through each point to calculate Lagrange basis polynomials
-        for (int i = 0; i < k; i++) {
-            int xi = points.get(i)[0];
-            int yi = points.get(i)[1];
-
-            double basis = 1;
-
-            // Compute the basis polynomial for this point
-            for (int j = 0; j < k; j++) {
-                if (i != j) {
-                    int xj = points.get(j)[0];
-                    basis *= (0 - xj) / (double) (xi - xj); // We need P(0), so x = 0
-                }
-            }
-
-            // Add the contribution of the current point to the constant term
-            constantTerm += yi * basis;
+// Function to decode values from different bases
+long long decodeValue(const string &value, int base) {
+    long long decodedValue = 0;
+    int length = value.length();
+    for (int i = 0; i < length; i++) {
+        char digit = value[length - i - 1];
+        int digitValue;
+        if (digit >= '0' && digit <= '9') {
+            digitValue = digit - '0';
+        } else if (digit >= 'A' && digit <= 'Z') {
+            digitValue = digit - 'A' + 10;
         }
-
-        return constantTerm;
+        decodedValue += digitValue * pow(base, i);
     }
+    return decodedValue;
+}
 
-    public static void main(String[] args) {
-        // Mock JSON data (you can manually input this in the final solution)
-        // For simplicity, we assume the structure is manually parsed
-        String jsonInput = """
-        {
-            "keys": {
-                "n": 4,
-                "k": 3
-            },
-            "1": {
-                "base": "10",
-                "value": "4"
-            },
-            "2": {
-                "base": "2",
-                "value": "111"
-            },
-            "3": {
-                "base": "10",
-                "value": "12"
-            },
-            "6": {
-                "base": "4",
-                "value": "213"
+// Lagrange interpolation to find the constant term c (i.e., f(0))
+double lagrangeInterpolation(const vector<pair<int, long long>> &points) {
+    int k = points.size();
+    double constantTerm = 0.0;
+
+    // Lagrange interpolation formula to find f(0)
+    for (int i = 0; i < k; i++) {
+        double term = points[i].second; // y_i
+        for (int j = 0; j < k; j++) {
+            if (i != j) {
+                term *= (0 - points[j].first) * 1.0 / (points[i].first - points[j].first);
             }
         }
-        """;
-
-        // Initialize a list to store the points
-        List<int[]> points = new ArrayList<>();
-
-        // Manually extract keys and points from the input (parsing JSON by hand)
-        int n = 4;  // This would come from the "n" key
-        int k = 3;  // This would come from the "k" key
-
-        // Manually extracted points from JSON
-        points.add(new int[]{1, decodeValue("4", 10)});   // x = 1, y = 4 (base 10)
-        points.add(new int[]{2, decodeValue("111", 2)});  // x = 2, y = 7 (base 2)
-        points.add(new int[]{3, decodeValue("12", 10)});  // x = 3, y = 12 (base 10)
-        points.add(new int[]{6, decodeValue("213", 4)});  // x = 6, y = 39 (base 4)
-
-        // Perform Lagrange interpolation to find the constant term 'c'
-        double constantTerm = lagrangeInterpolation(points, k);
-
-        // Print the result
-        System.out.println("Constant term (c): " + constantTerm);
+        constantTerm += term;
     }
+    return constantTerm;
+}
+
+int main() {
+    // Variables to hold n and k
+    int n = 9, k = 6; // from the input JSON
+
+    // Map to store the input values for each point
+    map<int, pair<int, string>> input = {
+        {1, {10, "28735619723837"}},
+        {2, {16, "1A228867F0CA"}},
+        {3, {12, "32811A4AA0B7B"}},
+        {4, {11, "917978721331A"}},
+        {5, {16, "1A22886782E1"}},
+        {6, {10, "28735619654702"}},
+        {7, {14, "71AB5070CC4B"}},
+        {8, {9, "122662581541670"}},
+        {9, {8, "642121030037605"}}
+    };
+
+    // Decoding the y-values and preparing points (x, y)
+    vector<pair<int, long long>> points;
+    for (const auto &item : input) {
+        int x = item.first;
+        int base = item.second.first;
+        string value = item.second.second;
+        long long y = decodeValue(value, base);
+        points.push_back({x, y});
+    }
+
+    // Use Lagrange interpolation to find the constant term (c) with the first 6 points
+    vector<pair<int, long long>> firstKPoints(points.begin(), points.begin() + k);
+    double constantTerm = lagrangeInterpolation(firstKPoints);
+
+    // Output the constant term
+    cout << "The constant term (c) is: " << constantTerm << endl;
+
+    return 0;
 }
