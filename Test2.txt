@@ -1,0 +1,84 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class ShamirSecretSharing {
+
+    // Function to decode the value based on the given base
+    public static int decodeValue(String value, int base) {
+        return Integer.parseInt(value, base);  // Parse the value according to the base
+    }
+
+    // Function to perform Lagrange interpolation and calculate the constant term
+    public static double lagrangeInterpolation(List<int[]> points, int k) {
+        double constantTerm = 0;
+
+        // Iterate through each point to calculate Lagrange basis polynomials
+        for (int i = 0; i < k; i++) {
+            int xi = points.get(i)[0];
+            int yi = points.get(i)[1];
+
+            double basis = 1;
+
+            // Compute the basis polynomial for this point
+            for (int j = 0; j < k; j++) {
+                if (i != j) {
+                    int xj = points.get(j)[0];
+                    basis *= (0 - xj) / (double) (xi - xj); // We need P(0), so x = 0
+                }
+            }
+
+            // Add the contribution of the current point to the constant term
+            constantTerm += yi * basis;
+        }
+
+        return constantTerm;
+    }
+
+    public static void main(String[] args) {
+        // Mock JSON data (you can manually input this in the final solution)
+        // For simplicity, we assume the structure is manually parsed
+        String jsonInput = """
+        {
+            "keys": {
+                "n": 4,
+                "k": 3
+            },
+            "1": {
+                "base": "10",
+                "value": "4"
+            },
+            "2": {
+                "base": "2",
+                "value": "111"
+            },
+            "3": {
+                "base": "10",
+                "value": "12"
+            },
+            "6": {
+                "base": "4",
+                "value": "213"
+            }
+        }
+        """;
+
+        // Initialize a list to store the points
+        List<int[]> points = new ArrayList<>();
+
+        // Manually extract keys and points from the input (parsing JSON by hand)
+        int n = 4;  // This would come from the "n" key
+        int k = 3;  // This would come from the "k" key
+
+        // Manually extracted points from JSON
+        points.add(new int[]{1, decodeValue("4", 10)});   // x = 1, y = 4 (base 10)
+        points.add(new int[]{2, decodeValue("111", 2)});  // x = 2, y = 7 (base 2)
+        points.add(new int[]{3, decodeValue("12", 10)});  // x = 3, y = 12 (base 10)
+        points.add(new int[]{6, decodeValue("213", 4)});  // x = 6, y = 39 (base 4)
+
+        // Perform Lagrange interpolation to find the constant term 'c'
+        double constantTerm = lagrangeInterpolation(points, k);
+
+        // Print the result
+        System.out.println("Constant term (c): " + constantTerm);
+    }
+}
